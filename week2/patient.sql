@@ -1,3 +1,4 @@
+use hospital;
 CREATE TABLE Patient (
     patient_id INT NOT NULL,
     patient_name VARCHAR(100),
