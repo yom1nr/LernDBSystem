@@ -1,0 +1,18 @@
+ORG 8000H
+START:
+    MOV R1, #00H
+LOOP:
+    MOV DPTR, #TABLE
+    MOV A, R1            
+    MOVC A, @A+DPTR
+    
+    MOV DPTR, #0E060H
+    MOVX @DPTR, A
+    
+    INC R1
+    CJNE R1, #10H, LOOP
+    LJMP START
+
+TABLE:  
+    DB 7CH, 00H, 7DH, 00H, 07H, 00H, 5BH, 00H
+    DB 6FH, 00H, 7FH, 00H, 07H, 00H, 6DH, 00H
