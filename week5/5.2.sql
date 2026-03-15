@@ -1,0 +1,15 @@
+SELECT FIRST_NAME, LAST_NAME
+FROM officer
+WHERE CUST_ID = (
+    SELECT CUST_ID
+    FROM individual
+    WHERE FIRST_NAME = 'James' AND LAST_NAME = 'Hadley'
+);
+
+SELECT *
+FROM account
+WHERE AVAIL_BALANCE > (
+    SELECT AVG(AVAIL_BALANCE)
+    FROM account
+)
+ORDER BY OPEN_DATE;
