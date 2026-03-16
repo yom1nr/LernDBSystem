@@ -4,18 +4,20 @@ INNER JOIN department d
 ON e.DEPT_ID = d.DEPT_ID
 WHERE d.NAME = 'Operations';
 
-SELECT o.FIRST_NAME AS Officer_Name, i.FIRST_NAME AS Individual_Name
-FROM officer o
-INNER JOIN individual i
-ON o.CUST_ID = i.CUST_ID;
+SELECT 
+	o.FIRST_NAME AS Officer_Name, 
+    i.FIRST_NAME AS Individual_Name
+FROM customer c
+INNER JOIN officer o 	ON c.CUST_ID = o.CUST_ID
+INNER JOIN individual i ON c.CUST_ID = i.CUST_ID;
 
 SELECT 
-    sub.EMP_ID,
-    sub.FIRST_NAME AS Emp_First_Name, 
-    sub.LAST_NAME AS Emp_Last_Name,
-    sup.FIRST_NAME AS Manager_First_Name, 
-    sup.LAST_NAME AS Manager_Last_Name
-FROM employee sub
-INNER JOIN employee sup 
-ON sub.SUPERIOR_EMP_ID = sup.EMP_ID
+    worker.EMP_ID, 
+    worker.FIRST_NAME, 
+    worker.LAST_NAME, 
+    manager.FIRST_NAME, 
+    manager.LAST_NAME
+FROM employee worker
+LEFT JOIN employee manager 
+ON worker.SUPERIOR_EMP_ID = manager.EMP_ID
 LIMIT 5;
