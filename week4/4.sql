@@ -9,7 +9,7 @@ SELECT * FROM city
 WHERE city LIKE '%city';
 
 SELECT * FROM rental 
-WHERE return_date BETWEEN '2005-05-25' AND '2005-05-27' 
+WHERE return_date BETWEEN '2005-05-25' AND  '2005-05-27' 
 ORDER BY return_date ASC 
 LIMIT 5;
 
