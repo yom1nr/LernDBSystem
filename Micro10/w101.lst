@@ -1,0 +1,212 @@
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 1
+
+
+
+
+
+       MCS-51 Family Macro Assembler   A S E M - 5 1   V 1.3
+       =====================================================
+
+
+
+	Source File:	D:\Micro10\w101.asm
+	Object File:	D:\Micro10\w101.hex
+	List File:	D:\Micro10\w101.lst
+
+
+
+ Line  I  Addr  Code            Source
+
+    1:		N      0000	ORG     0000H
+    2:	  0000	21 00		        JMP     0100H
+    3:
+    4:		N      0100	        ORG     0100H
+    5:	  0100			MAIN:
+    6:	  0100	75 81 3F	        MOV     SP, #3FH
+    7:	  0103	C2 AF		        CLR     EA
+    8:
+    9:	  0105	75 89 20	        MOV     TMOD, #20H
+   10:	  0108	75 98 50	        MOV     SCON, #50H
+   11:
+   12:	  010B	75 8D FD	        MOV     TH1, #0FDH
+   13:	  010E	D2 8E		        SETB    TR1
+   14:
+   15:	  0110			MAIN_LOOP:
+   16:	  0110	7A 0A		        MOV     R2, #10
+   17:
+   18:	  0112			PRINT_INFO:
+   19:	  0112	90 01 4A	        MOV     DPTR, #STR_INFO
+   20:	  0115	12 01 28	        CALL    SEND_STRING
+   21:	  0118	12 01 3D	        CALL    DELAY_500MS
+   22:	  011B	DA F5		        DJNZ    R2, PRINT_INFO
+   23:
+   24:	  011D			PRINT_WANT_A:
+   25:	  011D	90 01 69	        MOV     DPTR, #STR_WANT_A
+   26:	  0120	12 01 28	        CALL    SEND_STRING
+   27:	  0123	12 01 3D	        CALL    DELAY_500MS
+   28:
+   29:	  0126	80 FE		        SJMP    $
+   30:
+   31:	  0128			SEND_STRING:
+   32:	  0128	E4		        CLR     A
+   33:	  0129	93		        MOVC    A, @A+DPTR
+   34:	  012A	60 06		        JZ      SEND_STRING_END
+   35:	  012C	12 01 33	        CALL    SEND_CHAR
+   36:	  012F	A3		        INC     DPTR
+   37:	  0130	80 F6		        SJMP    SEND_STRING
+   38:	  0132			SEND_STRING_END:
+   39:	  0132	22		        RET
+   40:
+   41:	  0133			SEND_CHAR:
+   42:	  0133	C2 99		        CLR     TI
+   43:	  0135	F5 99		        MOV     SBUF, A
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 2
+
+
+
+ Line  I  Addr  Code            Source
+
+   44:	  0137	30 99 FD	        JNB     TI, $
+   45:	  013A	C2 99		        CLR     TI
+   46:	  013C	22		        RET
+   47:
+   48:	  013D			DELAY_500MS:
+   49:	  013D	7D 05		        MOV     R5, #5
+   50:	  013F	7E C8		DLY1:   MOV     R6, #200
+   51:	  0141	7F FA		DLY2:   MOV     R7, #250
+   52:	  0143	DF FE		        DJNZ    R7, $
+   53:	  0145	DE FA		        DJNZ    R6, DLY2
+   54:	  0147	DD F6		        DJNZ    R5, DLY1
+   55:	  0149	22		        RET
+   56:
+   57:	  014A			STR_INFO:
+   58:	  014A	42 36 37 32	        DB      'B6729875 Roek Watthanawongsa', 0DH, 0AH, 00H
+	  014E	39 38 37 35
+	  0152	20 52 6F 65
+	  0156	6B 20 57 61
+	  015A	74 74 68 61
+	  015E	6E 61 77 6F
+	  0162	6E 67 73 61
+	  0166	0D 0A 00
+   59:	  0169			STR_WANT_A:
+   60:	  0169	49 20 57 61	        DB      'I Want A', 0DH, 0AH, 00H
+	  016D	6E 74 20 41
+	  0171	0D 0A 00
+   61:
+   62:				        END
+
+
+
+
+
+                     register banks used:  ---
+
+                     no errors
+
+
+
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 3
+
+
+
+
+
+	       L I S T   O F   S Y M B O L S
+	       =============================
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+??ASEM_51			  NUMBER    8051
+??VERSION			  NUMBER    0130
+AC				  BIT	      D6
+ACC				  DATA	      E0
+B				  DATA	      F0
+CY				  BIT	      D7
+DELAY_500MS			  CODE	    013D	  48
+DLY1				  CODE	    013F	  50
+DLY2				  CODE	    0141	  51
+DPH				  DATA	      83
+DPL				  DATA	      82
+EA				  BIT	      AF
+ES				  BIT	      AC
+ET0				  BIT	      A9
+ET1				  BIT	      AB
+EX0				  BIT	      A8
+EX1				  BIT	      AA
+EXTI0				  CODE	    0003
+EXTI1				  CODE	    0013
+F0				  BIT	      D5
+IE				  DATA	      A8
+IE0				  BIT	      89
+IE1				  BIT	      8B
+INT0				  BIT	      B2
+INT1				  BIT	      B3
+IP				  DATA	      B8
+IT0				  BIT	      88
+IT1				  BIT	      8A
+MAIN				  CODE	    0100	   5
+MAIN_LOOP			  CODE	    0110	  15
+OV				  BIT	      D2
+P				  BIT	      D0
+P0				  DATA	      80
+P1				  DATA	      90
+P2				  DATA	      A0
+P3				  DATA	      B0
+PCON				  DATA	      87
+PRINT_INFO			  CODE	    0112	  18
+PRINT_WANT_A			  CODE	    011D	  24
+PS				  BIT	      BC
+PSW				  DATA	      D0
+PT0				  BIT	      B9
+PT1				  BIT	      BB
+PX0				  BIT	      B8
+PX1				  BIT	      BA
+RB8				  BIT	      9A
+RD				  BIT	      B7
+REN				  BIT	      9C
+RESET				  CODE	    0000
+RI				  BIT	      98
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 4
+
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+RS0				  BIT	      D3
+RS1				  BIT	      D4
+RXD				  BIT	      B0
+SBUF				  DATA	      99
+SCON				  DATA	      98
+SEND_CHAR			  CODE	    0133	  41
+SEND_STRING			  CODE	    0128	  31
+SEND_STRING_END			  CODE	    0132	  38
+SINT				  CODE	    0023
+SM0				  BIT	      9F
+SM1				  BIT	      9E
+SM2				  BIT	      9D
+SP				  DATA	      81
+STR_INFO			  CODE	    014A	  57
+STR_WANT_A			  CODE	    0169	  59
+T0				  BIT	      B4
+T1				  BIT	      B5
+TB8				  BIT	      9B
+TCON				  DATA	      88
+TF0				  BIT	      8D
+TF1				  BIT	      8F
+TH0				  DATA	      8C
+TH1				  DATA	      8D
+TI				  BIT	      99
+TIMER0				  CODE	    000B
+TIMER1				  CODE	    001B
+TL0				  DATA	      8A
+TL1				  DATA	      8B
+TMOD				  DATA	      89
+TR0				  BIT	      8C
+TR1				  BIT	      8E
+TXD				  BIT	      B1
+WR				  BIT	      B6

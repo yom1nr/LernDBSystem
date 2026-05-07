@@ -1,0 +1,256 @@
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 1
+
+
+
+
+
+       MCS-51 Family Macro Assembler   A S E M - 5 1   V 1.3
+       =====================================================
+
+
+
+	Source File:	D:\Micro10\w102_anode.asm
+	Object File:	D:\Micro10\w102_anode.hex
+	List File:	D:\Micro10\w102_anode.lst
+
+
+
+ Line  I  Addr  Code            Source
+
+    1:		N      0000	ORG     0000H
+    2:	  0000	21 00		        JMP     0100H
+    3:		N      0100	        ORG     0100H
+    4:	  0100			MAIN:
+    5:	  0100	75 81 3F	        MOV     SP, #3FH
+    6:	  0103	C2 AF		        CLR     EA
+    7:	  0105	75 89 20	        MOV     TMOD, #20H
+    8:	  0108	75 98 50	        MOV     SCON, #50H
+    9:	  010B	75 8D FD	        MOV     TH1, #0FDH
+   10:	  010E	75 8B FD	        MOV     TL1, #0FDH
+   11:	  0111	D2 8E		        SETB    TR1
+   12:	  0113	78 00		        MOV     R0, #0
+   13:	  0115	D2 B2		        SETB    P3.2
+   14:	  0117	D2 B7		        SETB    P3.7
+   15:	  0119	E8		        MOV     A, R0
+   16:	  011A	12 01 85	        CALL    UPDATE_7SEG
+   17:	  011D			WAIT_RX:
+   18:	  011D	30 98 FD	        JNB     RI, WAIT_RX
+   19:	  0120	E5 99		        MOV     A, SBUF
+   20:	  0122	C2 98		        CLR     RI
+   21:	  0124	B4 0D 02	        CJNE    A, #0DH, _N_CR
+   22:	  0127	80 F4		        SJMP    WAIT_RX
+   23:	  0129			_N_CR:
+   24:	  0129	B4 0A 02	        CJNE    A, #0AH, _N_LF
+   25:	  012C	80 EF		        SJMP    WAIT_RX
+   26:	  012E			_N_LF:
+   27:	  012E	B4 20 02	        CJNE    A, #20H, _N_SP
+   28:	  0131	80 EA		        SJMP    WAIT_RX
+   29:	  0133			_N_SP:
+   30:	  0133	B4 2B 08	        CJNE    A, #'+', CHK_MINUS
+   31:	  0136	08		        INC     R0
+   32:	  0137	B8 0A 43	        CJNE    R0, #10, SHOW_CNT
+   33:	  013A	78 00		        MOV     R0, #0
+   34:	  013C	80 3F		        SJMP    SHOW_CNT
+   35:	  013E			CHK_MINUS:
+   36:	  013E	B4 2D 08	        CJNE    A, #'-', CHK_ZERO
+   37:	  0141	18		        DEC     R0
+   38:	  0142	B8 FF 38	        CJNE    R0, #0FFH, SHOW_CNT
+   39:	  0145	78 09		        MOV     R0, #9
+   40:	  0147	80 34		        SJMP    SHOW_CNT
+   41:	  0149			CHK_ZERO:
+   42:	  0149	B4 30 02	        CJNE    A, #'0', CHK_1_TO_9
+   43:	  014C	80 2F		        SJMP    SHOW_CNT
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 2
+
+
+
+ Line  I  Addr  Code            Source
+
+   44:	  014E			CHK_1_TO_9:
+   45:	  014E	C3		        CLR     C
+   46:	  014F	F9		        MOV     R1, A
+   47:	  0150	94 31		        SUBB    A, #'1'
+   48:	  0152	40 20		        JC      OTHER_KEY
+   49:	  0154	E9		        MOV     A, R1
+   50:	  0155	94 39		        SUBB    A, #'9'
+   51:	  0157	60 02		        JZ      IS_1_TO_9
+   52:	  0159	50 19		        JNC     OTHER_KEY
+   53:	  015B			IS_1_TO_9:
+   54:	  015B	D2 B2		        SETB    P3.2
+   55:	  015D	E9		        MOV     A, R1
+   56:	  015E	C3		        CLR     C
+   57:	  015F	94 30		        SUBB    A, #'0'
+   58:	  0161	F8		        MOV     R0, A
+   59:	  0162	FA		        MOV     R2, A
+   60:	  0163	12 01 85	        CALL    UPDATE_7SEG
+   61:	  0166			BLINK_LOOP:
+   62:	  0166	D2 B7		        SETB    P3.7
+   63:	  0168	12 01 8C	        CALL    DELAY_250MS
+   64:	  016B	C2 B7		        CLR     P3.7
+   65:	  016D	12 01 8C	        CALL    DELAY_250MS
+   66:	  0170	DA F4		        DJNZ    R2, BLINK_LOOP
+   67:	  0172	80 A9		        SJMP    WAIT_RX
+   68:	  0174			OTHER_KEY:
+   69:	  0174	C2 B2		        CLR     P3.2
+   70:	  0176	74 0A		        MOV     A, #10
+   71:	  0178	12 01 85	        CALL    UPDATE_7SEG
+   72:	  017B	80 A0		        SJMP    WAIT_RX
+   73:	  017D			SHOW_CNT:
+   74:	  017D	C2 B2		        CLR     P3.2
+   75:	  017F	E8		        MOV     A, R0
+   76:	  0180	12 01 85	        CALL    UPDATE_7SEG
+   77:	  0183	80 98		        SJMP    WAIT_RX
+   78:	  0185			UPDATE_7SEG:
+   79:	  0185	90 01 99	        MOV     DPTR, #SEG_TAB
+   80:	  0188	93		        MOVC    A, @A+DPTR
+   81:	  0189	F5 90		        MOV     P1, A
+   82:	  018B	22		        RET
+   83:	  018C			DELAY_250MS:
+   84:	  018C	7D 05		        MOV     R5, #5
+   85:	  018E	7E 64		DLY1:   MOV     R6, #100
+   86:	  0190	7F E4		DLY2:   MOV     R7, #228
+   87:	  0192	DF FE		        DJNZ    R7, $
+   88:	  0194	DE FA		        DJNZ    R6, DLY2
+   89:	  0196	DD F6		        DJNZ    R5, DLY1
+   90:	  0198	22		        RET
+   91:	  0199			SEG_TAB:
+   92:	  0199	3F		        DB      3FH   ; 0
+   93:	  019A	06		        DB      06H   ; 1
+   94:	  019B	5B		        DB      5BH   ; 2
+   95:	  019C	4F		        DB      4FH   ; 3
+   96:	  019D	66		        DB      66H   ; 4
+   97:	  019E	6D		        DB      6DH   ; 5
+   98:	  019F	7D		        DB      7DH   ; 6
+   99:	  01A0	07		        DB      07H   ; 7
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 3
+
+
+
+ Line  I  Addr  Code            Source
+
+  100:	  01A1	7F		        DB      7FH   ; 8
+  101:	  01A2	6F		        DB      6FH   ; 9
+  102:	  01A3	40		        DB      40H   ; – ขีดกลาง (segment g เท่านั้น)
+  103:				        END
+
+
+
+
+
+                     register banks used:  ---
+
+                     no errors
+
+
+
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 4
+
+
+
+
+
+	       L I S T   O F   S Y M B O L S
+	       =============================
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+??ASEM_51			  NUMBER    8051
+??VERSION			  NUMBER    0130
+AC				  BIT	      D6
+ACC				  DATA	      E0
+B				  DATA	      F0
+BLINK_LOOP			  CODE	    0166	  61
+CHK_1_TO_9			  CODE	    014E	  44
+CHK_MINUS			  CODE	    013E	  35
+CHK_ZERO			  CODE	    0149	  41
+CY				  BIT	      D7
+DELAY_250MS			  CODE	    018C	  83
+DLY1				  CODE	    018E	  85
+DLY2				  CODE	    0190	  86
+DPH				  DATA	      83
+DPL				  DATA	      82
+EA				  BIT	      AF
+ES				  BIT	      AC
+ET0				  BIT	      A9
+ET1				  BIT	      AB
+EX0				  BIT	      A8
+EX1				  BIT	      AA
+EXTI0				  CODE	    0003
+EXTI1				  CODE	    0013
+F0				  BIT	      D5
+IE				  DATA	      A8
+IE0				  BIT	      89
+IE1				  BIT	      8B
+INT0				  BIT	      B2
+INT1				  BIT	      B3
+IP				  DATA	      B8
+IS_1_TO_9			  CODE	    015B	  53
+IT0				  BIT	      88
+IT1				  BIT	      8A
+MAIN				  CODE	    0100	   4
+OTHER_KEY			  CODE	    0174	  68
+OV				  BIT	      D2
+P				  BIT	      D0
+P0				  DATA	      80
+P1				  DATA	      90
+P2				  DATA	      A0
+P3				  DATA	      B0
+PCON				  DATA	      87
+PS				  BIT	      BC
+PSW				  DATA	      D0
+PT0				  BIT	      B9
+PT1				  BIT	      BB
+PX0				  BIT	      B8
+PX1				  BIT	      BA
+RB8				  BIT	      9A
+RD				  BIT	      B7
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 5
+
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+REN				  BIT	      9C
+RESET				  CODE	    0000
+RI				  BIT	      98
+RS0				  BIT	      D3
+RS1				  BIT	      D4
+RXD				  BIT	      B0
+SBUF				  DATA	      99
+SCON				  DATA	      98
+SEG_TAB				  CODE	    0199	  91
+SHOW_CNT			  CODE	    017D	  73
+SINT				  CODE	    0023
+SM0				  BIT	      9F
+SM1				  BIT	      9E
+SM2				  BIT	      9D
+SP				  DATA	      81
+T0				  BIT	      B4
+T1				  BIT	      B5
+TB8				  BIT	      9B
+TCON				  DATA	      88
+TF0				  BIT	      8D
+TF1				  BIT	      8F
+TH0				  DATA	      8C
+TH1				  DATA	      8D
+TI				  BIT	      99
+TIMER0				  CODE	    000B
+TIMER1				  CODE	    001B
+TL0				  DATA	      8A
+TL1				  DATA	      8B
+TMOD				  DATA	      89
+TR0				  BIT	      8C
+TR1				  BIT	      8E
+TXD				  BIT	      B1
+UPDATE_7SEG			  CODE	    0185	  78
+WAIT_RX				  CODE	    011D	  17
+WR				  BIT	      B6
+_N_CR				  CODE	    0129	  23
+_N_LF				  CODE	    012E	  26
+_N_SP				  CODE	    0133	  29

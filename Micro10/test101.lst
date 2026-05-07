@@ -1,0 +1,219 @@
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 1
+
+
+
+
+
+       MCS-51 Family Macro Assembler   A S E M - 5 1   V 1.3
+       =====================================================
+
+
+
+	Source File:	D:\Micro10\test101.asm
+	Object File:	D:\Micro10\test101.hex
+	List File:	D:\Micro10\test101.lst
+
+
+
+ Line  I  Addr  Code            Source
+
+    1:				; =========================================================
+    2:				; Mission 1: MCS-51 Tx (Test with LED Heartbeat)
+    3:				; =========================================================
+    4:
+    5:		N      0000	        ORG     0000H
+    6:	  0000	21 00		        JMP     0100H
+    7:
+    8:		N      0100	        ORG     0100H
+    9:	  0100			MAIN:
+   10:	  0100	75 81 3F	        MOV     SP, #3FH
+   11:	  0103	C2 AF		        CLR     EA
+   12:
+   13:				        ; ตั้งค่า UART
+   14:	  0105	75 89 20	        MOV     TMOD, #20H
+   15:	  0108	75 98 50	        MOV     SCON, #50H
+   16:	  010B	75 87 00	        MOV     PCON, #00H      ; ชัวร์ไว้ก่อนว่า SMOD = 0
+   17:	  010E	75 8D FD	        MOV     TH1, #0FDH      ; 9600 baud @ 11.0592 MHz [cite: 821, 824]
+   18:	  0111	D2 8E		        SETB    TR1
+   19:
+   20:	  0113			MAIN_LOOP:
+   21:	  0113	7A 0A		        MOV     R2, #10
+   22:
+   23:	  0115			PRINT_INFO:
+   24:	  0115	90 01 51	        MOV     DPTR, #STR_INFO
+   25:	  0118	12 01 2F	        CALL    SEND_STRING
+   26:	  011B	B2 A0		        CPL     P2.0            ; <--- ไฮไลท์! สั่งสลับไฟ LED ที่ขา P2.0 เพื่อเช็คว่าโค้ดวิ่งอยู่ไหม
+   27:	  011D	12 01 44	        CALL    DELAY_500MS
+   28:	  0120	DA F3		        DJNZ    R2, PRINT_INFO
+   29:
+   30:	  0122			PRINT_WANT_A:
+   31:	  0122	90 01 70	        MOV     DPTR, #STR_WANT_A
+   32:	  0125	12 01 2F	        CALL    SEND_STRING
+   33:	  0128	B2 A0		        CPL     P2.0            ; <--- สลับไฟ LED อีกรอบ
+   34:	  012A	12 01 44	        CALL    DELAY_500MS
+   35:
+   36:	  012D	80 E4		        SJMP    MAIN_LOOP
+   37:
+   38:	  012F			SEND_STRING:
+   39:	  012F	E4		        CLR     A
+   40:	  0130	93		        MOVC    A, @A+DPTR
+   41:	  0131	60 06		        JZ      SEND_STRING_END
+   42:	  0133	12 01 3A	        CALL    SEND_CHAR
+   43:	  0136	A3		        INC     DPTR
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 2
+
+
+
+ Line  I  Addr  Code            Source
+
+   44:	  0137	80 F6		        SJMP    SEND_STRING
+   45:	  0139			SEND_STRING_END:
+   46:	  0139	22		        RET
+   47:
+   48:	  013A			SEND_CHAR:
+   49:	  013A	C2 99		        CLR     TI
+   50:	  013C	F5 99		        MOV     SBUF, A
+   51:	  013E	30 99 FD	        JNB     TI, $
+   52:	  0141	C2 99		        CLR     TI
+   53:	  0143	22		        RET
+   54:
+   55:	  0144			DELAY_500MS:
+   56:	  0144	7D 05		        MOV     R5, #5
+   57:	  0146	7E C8		DLY1:   MOV     R6, #200
+   58:	  0148	7F FA		DLY2:   MOV     R7, #250
+   59:	  014A	DF FE		        DJNZ    R7, $
+   60:	  014C	DE FA		        DJNZ    R6, DLY2
+   61:	  014E	DD F6		        DJNZ    R5, DLY1
+   62:	  0150	22		        RET
+   63:
+   64:	  0151			STR_INFO:
+   65:	  0151	42 36 37 32	        DB      'B6729875 Roek Watthanawongsa', 0DH, 0AH, 00H
+	  0155	39 38 37 35
+	  0159	20 52 6F 65
+	  015D	6B 20 57 61
+	  0161	74 74 68 61
+	  0165	6E 61 77 6F
+	  0169	6E 67 73 61
+	  016D	0D 0A 00
+   66:	  0170			STR_WANT_A:
+   67:	  0170	49 20 57 61	        DB      'I Want A', 0DH, 0AH, 00H
+	  0174	6E 74 20 41
+	  0178	0D 0A 00
+   68:
+   69:				        END
+
+
+
+
+
+                     register banks used:  ---
+
+                     no errors
+
+
+
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 3
+
+
+
+
+
+	       L I S T   O F   S Y M B O L S
+	       =============================
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+??ASEM_51			  NUMBER    8051
+??VERSION			  NUMBER    0130
+AC				  BIT	      D6
+ACC				  DATA	      E0
+B				  DATA	      F0
+CY				  BIT	      D7
+DELAY_500MS			  CODE	    0144	  55
+DLY1				  CODE	    0146	  57
+DLY2				  CODE	    0148	  58
+DPH				  DATA	      83
+DPL				  DATA	      82
+EA				  BIT	      AF
+ES				  BIT	      AC
+ET0				  BIT	      A9
+ET1				  BIT	      AB
+EX0				  BIT	      A8
+EX1				  BIT	      AA
+EXTI0				  CODE	    0003
+EXTI1				  CODE	    0013
+F0				  BIT	      D5
+IE				  DATA	      A8
+IE0				  BIT	      89
+IE1				  BIT	      8B
+INT0				  BIT	      B2
+INT1				  BIT	      B3
+IP				  DATA	      B8
+IT0				  BIT	      88
+IT1				  BIT	      8A
+MAIN				  CODE	    0100	   9
+MAIN_LOOP			  CODE	    0113	  20
+OV				  BIT	      D2
+P				  BIT	      D0
+P0				  DATA	      80
+P1				  DATA	      90
+P2				  DATA	      A0
+P3				  DATA	      B0
+PCON				  DATA	      87
+PRINT_INFO			  CODE	    0115	  23
+PRINT_WANT_A			  CODE	    0122	  30
+PS				  BIT	      BC
+PSW				  DATA	      D0
+PT0				  BIT	      B9
+PT1				  BIT	      BB
+PX0				  BIT	      B8
+PX1				  BIT	      BA
+RB8				  BIT	      9A
+RD				  BIT	      B7
+REN				  BIT	      9C
+RESET				  CODE	    0000
+RI				  BIT	      98
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 4
+
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+RS0				  BIT	      D3
+RS1				  BIT	      D4
+RXD				  BIT	      B0
+SBUF				  DATA	      99
+SCON				  DATA	      98
+SEND_CHAR			  CODE	    013A	  48
+SEND_STRING			  CODE	    012F	  38
+SEND_STRING_END			  CODE	    0139	  45
+SINT				  CODE	    0023
+SM0				  BIT	      9F
+SM1				  BIT	      9E
+SM2				  BIT	      9D
+SP				  DATA	      81
+STR_INFO			  CODE	    0151	  64
+STR_WANT_A			  CODE	    0170	  66
+T0				  BIT	      B4
+T1				  BIT	      B5
+TB8				  BIT	      9B
+TCON				  DATA	      88
+TF0				  BIT	      8D
+TF1				  BIT	      8F
+TH0				  DATA	      8C
+TH1				  DATA	      8D
+TI				  BIT	      99
+TIMER0				  CODE	    000B
+TIMER1				  CODE	    001B
+TL0				  DATA	      8A
+TL1				  DATA	      8B
+TMOD				  DATA	      89
+TR0				  BIT	      8C
+TR1				  BIT	      8E
+TXD				  BIT	      B1
+WR				  BIT	      B6

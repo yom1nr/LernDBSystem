@@ -1,0 +1,253 @@
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 1
+
+
+
+
+
+       MCS-51 Family Macro Assembler   A S E M - 5 1   V 1.3
+       =====================================================
+
+
+
+	Source File:	D:\Micro10\w102.asm
+	Object File:	D:\Micro10\w102.hex
+	List File:	D:\Micro10\w102.lst
+
+
+
+ Line  I  Addr  Code            Source
+
+    1:		N      0000	ORG     0000H
+    2:	  0000	21 00		        JMP     0100H
+    3:
+    4:		N      0100	        ORG     0100H
+    5:	  0100			MAIN:
+    6:	  0100	75 81 3F	        MOV     SP, #3FH
+    7:	  0103	C2 AF		        CLR     EA
+    8:
+    9:	  0105	75 89 20	        MOV     TMOD, #20H
+   10:	  0108	75 98 50	        MOV     SCON, #50H
+   11:	  010B	75 8D FD	        MOV     TH1, #0FDH
+   12:	  010E	D2 8E		        SETB    TR1
+   13:
+   14:	  0110	78 00		        MOV     R0, #0
+   15:
+   16:	  0112	D2 B2		        SETB    P3.2
+   17:	  0114	D2 B7		        SETB    P3.7
+   18:
+   19:	  0116			WAIT_RX:
+   20:	  0116	30 98 FD	        JNB     RI, WAIT_RX
+   21:	  0119	E5 99		        MOV     A, SBUF
+   22:	  011B	C2 98		        CLR     RI
+   23:
+   24:	  011D	B4 2B 08	        CJNE    A, #'+', CHK_MINUS
+   25:	  0120	08		        INC     R0
+   26:	  0121	B8 0A 42	        CJNE    R0, #10, SHOW_CNT
+   27:	  0124	78 00		        MOV     R0, #0
+   28:	  0126	80 3E		        SJMP    SHOW_CNT
+   29:
+   30:	  0128			CHK_MINUS:
+   31:	  0128	B4 2D 08	        CJNE    A, #'-', CHK_ZERO
+   32:	  012B	18		        DEC     R0
+   33:	  012C	B8 FF 37	        CJNE    R0, #0FFH, SHOW_CNT
+   34:	  012F	78 09		        MOV     R0, #9
+   35:	  0131	80 33		        SJMP    SHOW_CNT
+   36:
+   37:	  0133			CHK_ZERO:
+   38:	  0133	B4 30 02	        CJNE    A, #'0', CHK_1_TO_9
+   39:	  0136	80 2E		        SJMP    SHOW_CNT
+   40:
+   41:	  0138			CHK_1_TO_9:
+   42:	  0138	C3		        CLR     C
+   43:	  0139	F9		        MOV     R1, A
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 2
+
+
+
+ Line  I  Addr  Code            Source
+
+   44:	  013A	94 31		        SUBB    A, #'1'
+   45:	  013C	40 1F		        JC      OTHER_KEY
+   46:	  013E	E9		        MOV     A, R1
+   47:	  013F	94 39		        SUBB    A, #'9'
+   48:	  0141	60 02		        JZ      IS_1_TO_9
+   49:	  0143	50 18		        JNC     OTHER_KEY
+   50:
+   51:	  0145			IS_1_TO_9:
+   52:	  0145	C2 B2		        CLR     P3.2
+   53:
+   54:	  0147	E9		        MOV     A, R1
+   55:	  0148	C3		        CLR     C
+   56:	  0149	94 30		        SUBB    A, #'0'
+   57:	  014B	FA		        MOV     R2, A
+   58:
+   59:	  014C	12 01 6E	        CALL    UPDATE_7SEG
+   60:
+   61:	  014F			BLINK_LOOP:
+   62:	  014F	C2 B7		        CLR     P3.7
+   63:	  0151	12 01 75	        CALL    DELAY_250MS
+   64:	  0154	D2 B7		        SETB    P3.7
+   65:	  0156	12 01 75	        CALL    DELAY_250MS
+   66:	  0159	DA F4		        DJNZ    R2, BLINK_LOOP
+   67:
+   68:	  015B	80 B9		        SJMP    WAIT_RX
+   69:
+   70:	  015D			OTHER_KEY:
+   71:	  015D	D2 B2		        SETB    P3.2
+   72:	  015F	74 0A		        MOV     A, #10
+   73:	  0161	12 01 6E	        CALL    UPDATE_7SEG
+   74:	  0164	80 B0		        SJMP    WAIT_RX
+   75:
+   76:	  0166			SHOW_CNT:
+   77:	  0166	D2 B2		        SETB    P3.2
+   78:	  0168	E8		        MOV     A, R0
+   79:	  0169	12 01 6E	        CALL    UPDATE_7SEG
+   80:	  016C	80 A8		        SJMP    WAIT_RX
+   81:
+   82:	  016E			UPDATE_7SEG:
+   83:	  016E	90 01 82	        MOV     DPTR, #SEG_TAB
+   84:	  0171	93		        MOVC    A, @A+DPTR
+   85:	  0172	F5 90		        MOV     P1, A
+   86:	  0174	22		        RET
+   87:
+   88:	  0175			DELAY_250MS:
+   89:	  0175	7D 05		        MOV     R5, #5
+   90:	  0177	7E 64		DLY1:   MOV     R6, #100
+   91:	  0179	7F FA		DLY2:   MOV     R7, #250
+   92:	  017B	DF FE		        DJNZ    R7, $
+   93:	  017D	DE FA		        DJNZ    R6, DLY2
+   94:	  017F	DD F6		        DJNZ    R5, DLY1
+   95:	  0181	22		        RET
+   96:
+   97:	  0182			SEG_TAB:
+   98:	  0182	3F 06 5B 4F	        DB      3FH, 06H, 5BH, 4FH, 66H, 6DH, 7DH, 07H, 7FH, 6FH
+	  0186	66 6D 7D 07
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 3
+
+
+
+ Line  I  Addr  Code            Source
+
+	  018A	7F 6F
+   99:	  018C	40		        DB      40H
+  100:
+  101:				        END
+
+
+
+
+
+                     register banks used:  ---
+
+                     no errors
+
+
+
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 4
+
+
+
+
+
+	       L I S T   O F   S Y M B O L S
+	       =============================
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+??ASEM_51			  NUMBER    8051
+??VERSION			  NUMBER    0130
+AC				  BIT	      D6
+ACC				  DATA	      E0
+B				  DATA	      F0
+BLINK_LOOP			  CODE	    014F	  61
+CHK_1_TO_9			  CODE	    0138	  41
+CHK_MINUS			  CODE	    0128	  30
+CHK_ZERO			  CODE	    0133	  37
+CY				  BIT	      D7
+DELAY_250MS			  CODE	    0175	  88
+DLY1				  CODE	    0177	  90
+DLY2				  CODE	    0179	  91
+DPH				  DATA	      83
+DPL				  DATA	      82
+EA				  BIT	      AF
+ES				  BIT	      AC
+ET0				  BIT	      A9
+ET1				  BIT	      AB
+EX0				  BIT	      A8
+EX1				  BIT	      AA
+EXTI0				  CODE	    0003
+EXTI1				  CODE	    0013
+F0				  BIT	      D5
+IE				  DATA	      A8
+IE0				  BIT	      89
+IE1				  BIT	      8B
+INT0				  BIT	      B2
+INT1				  BIT	      B3
+IP				  DATA	      B8
+IS_1_TO_9			  CODE	    0145	  51
+IT0				  BIT	      88
+IT1				  BIT	      8A
+MAIN				  CODE	    0100	   5
+OTHER_KEY			  CODE	    015D	  70
+OV				  BIT	      D2
+P				  BIT	      D0
+P0				  DATA	      80
+P1				  DATA	      90
+P2				  DATA	      A0
+P3				  DATA	      B0
+PCON				  DATA	      87
+PS				  BIT	      BC
+PSW				  DATA	      D0
+PT0				  BIT	      B9
+PT1				  BIT	      BB
+PX0				  BIT	      B8
+PX1				  BIT	      BA
+RB8				  BIT	      9A
+RD				  BIT	      B7
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 5
+
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+REN				  BIT	      9C
+RESET				  CODE	    0000
+RI				  BIT	      98
+RS0				  BIT	      D3
+RS1				  BIT	      D4
+RXD				  BIT	      B0
+SBUF				  DATA	      99
+SCON				  DATA	      98
+SEG_TAB				  CODE	    0182	  97
+SHOW_CNT			  CODE	    0166	  76
+SINT				  CODE	    0023
+SM0				  BIT	      9F
+SM1				  BIT	      9E
+SM2				  BIT	      9D
+SP				  DATA	      81
+T0				  BIT	      B4
+T1				  BIT	      B5
+TB8				  BIT	      9B
+TCON				  DATA	      88
+TF0				  BIT	      8D
+TF1				  BIT	      8F
+TH0				  DATA	      8C
+TH1				  DATA	      8D
+TI				  BIT	      99
+TIMER0				  CODE	    000B
+TIMER1				  CODE	    001B
+TL0				  DATA	      8A
+TL1				  DATA	      8B
+TMOD				  DATA	      89
+TR0				  BIT	      8C
+TR1				  BIT	      8E
+TXD				  BIT	      B1
+UPDATE_7SEG			  CODE	    016E	  82
+WAIT_RX				  CODE	    0116	  19
+WR				  BIT	      B6

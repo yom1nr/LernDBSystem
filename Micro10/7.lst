@@ -1,0 +1,270 @@
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 1
+
+
+
+
+
+       MCS-51 Family Macro Assembler   A S E M - 5 1   V 1.3
+       =====================================================
+
+
+
+	Source File:	D:\Micro10\7.asm
+	Object File:	D:\Micro10\7.hex
+	List File:	D:\Micro10\7.lst
+
+
+
+ Line  I  Addr  Code            Source
+
+    1:		N      0000	ORG     0000H
+    2:	  0000	02 01 00	        JMP     MAIN
+    3:
+    4:		N      0100	        ORG     0100H
+    5:	  0100			MAIN:
+    6:	  0100	75 81 3F	        MOV     SP, #3FH
+    7:	  0103	C2 AF		        CLR     EA              ; ปิด Interrupt (ใช้แบบวนลูปเช็คเอา)
+    8:
+    9:				        ; --- 1. ตั้งค่า Timer และ Counter ---
+   10:				        ; TMOD = 0010 0101B (25H)
+   11:				        ; -> ครึ่งซ้าย (20H) : ตั้ง Timer 1 เป็น Mode 2 (ใช้สร้าง Baud Rate 9600)
+   12:				        ; -> ครึ่งขวา (05H) : ตั้ง Timer 0 เป็น Counter Mode 1 (รับสัญญาณนับจากภายนอกที่ขา P3.4)
+   13:	  0105	75 89 25	        MOV     TMOD, #25H
+   14:
+   15:				        ; --- 2. ตั้งค่า Serial Port (9600 bps @ คริสตัล 11.0592 MHz) ---
+   16:	  0108	75 8D FD	        MOV     TH1, #0FDH      ; ค่า TH1 สำหรับ 9600 bps
+   17:	  010B	75 98 50	        MOV     SCON, #50H      ; Serial Mode 1, อนุญาตให้รับ-ส่ง (REN=1)
+   18:	  010E	D2 8E		        SETB    TR1             ; สตาร์ท Timer 1 ให้ Serial เริ่มทำงาน
+   19:
+   20:				        ; --- 3. ตั้งค่า Counter 0 (ตัวนับชิ้นงาน) ---
+   21:	  0110	75 8C 00	        MOV     TH0, #0         ; เคลียร์ค่านับหลักบนให้เป็น 0
+   22:	  0113	75 8A 00	        MOV     TL0, #0         ; เคลียร์ค่านับหลักล่างให้เป็น 0
+   23:	  0116	D2 8C		        SETB    TR0             ; สตาร์ท Counter 0 ให้เริ่มรอรับ Pulse ชิ้นงาน
+   24:
+   25:	  0118			MAIN_LOOP:
+   26:				        ; --- สเต็ป A: ส่งข้อความ "Data Count = " ---
+   27:	  0118	90 01 7A	        MOV     DPTR, #STR_DATA
+   28:	  011B	12 01 58	        CALL    SEND_STRING
+   29:
+   30:				        ; --- สเต็ป B: ดึงค่านับ (TH0) มาแปลงเป็นตัวหนังสือ 2 ตัวแล้วส่งออก ---
+   31:	  011E	E5 8C		        MOV     A, TH0
+   32:	  0120	12 01 37	        CALL    SEND_HEX_BYTE
+   33:
+   34:				        ; --- สเต็ป C: ดึงค่านับ (TL0) มาแปลงเป็นตัวหนังสือ 2 ตัวแล้วส่งออก ---
+   35:	  0123	E5 8A		        MOV     A, TL0
+   36:	  0125	12 01 37	        CALL    SEND_HEX_BYTE
+   37:
+   38:				        ; --- สเต็ป D: ส่งคำสั่งขึ้นบรรทัดใหม่ (Enter) ---
+   39:	  0128	74 0D		        MOV     A, #0DH         ; รหัส CR (Carriage Return) ให้กลับไปต้นบรรทัด
+   40:	  012A	12 01 63	        CALL    SEND_CHAR
+   41:	  012D	74 0A		        MOV     A, #0AH         ; รหัส LF (Line Feed) ให้ปัดตกบรรทัดใหม่
+   42:	  012F	12 01 63	        CALL    SEND_CHAR
+   43:
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 2
+
+
+
+ Line  I  Addr  Code            Source
+
+   44:				        ; --- สเต็ป E: หน่วงเวลา 0.5 วินาที ตามโจทย์สั่ง ---
+   45:	  0132	12 01 6D	        CALL    DELAY_500MS
+   46:
+   47:	  0135	80 E1		        SJMP    MAIN_LOOP       ; วนลูปส่งข้อมูลแบบนี้ไปเรื่อยๆ
+   48:
+   49:				; ==========================================
+   50:				; โปรแกรมย่อย: แปลงค่า 1 Byte เป็นอักษรฐาน 16 (2 ตัว) แล้วส่งออก Serial
+   51:				; ==========================================
+   52:	  0137			SEND_HEX_BYTE:
+   53:	  0137	C0 E0		        PUSH    ACC             ; เก็บค่าดั้งเดิมไว้ก่อน
+   54:	  0139	C4		        SWAP    A               ; สลับ 4 บิตบนมาไว้ครึ่งล่าง (เพื่อทำตัวหน้าก่อน)
+   55:	  013A	12 01 49	        CALL    NIBBLE_TO_ASCII
+   56:	  013D	12 01 63	        CALL    SEND_CHAR       ; ส่งตัวอักษรตัวหน้าออกไป
+   57:
+   58:	  0140	D0 E0		        POP     ACC             ; ดึงค่าดั้งเดิมกลับมา
+   59:	  0142	12 01 49	        CALL    NIBBLE_TO_ASCII ; ทำ 4 บิตล่าง
+   60:	  0145	12 01 63	        CALL    SEND_CHAR       ; ส่งตัวอักษรตัวหลังออกไป
+   61:	  0148	22		        RET
+   62:
+   63:	  0149			NIBBLE_TO_ASCII:
+   64:	  0149	54 0F		        ANL     A, #0FH         ; ตัดเอาแค่ 4 บิตล่างมาพิจารณา
+   65:	  014B	C0 83		        PUSH    DPH             ; เซฟค่า DPTR เดิมเก็บไว้ก่อน
+   66:	  014D	C0 82		        PUSH    DPL
+   67:	  014F	90 01 88	        MOV     DPTR, #HEX_TABLE
+   68:	  0152	93		        MOVC    A, @A+DPTR      ; ไปดึงตัวอักษร '0'-'F' จากตารางด้านล่าง
+   69:	  0153	D0 82		        POP     DPL             ; คืนค่า DPTR กลับมา
+   70:	  0155	D0 83		        POP     DPH
+   71:	  0157	22		        RET
+   72:
+   73:				; ==========================================
+   74:				; โปรแกรมย่อย: ส่งข้อความยาวๆ (String)
+   75:				; ==========================================
+   76:	  0158			SEND_STRING:
+   77:	  0158	E4		        CLR     A
+   78:	  0159	93		        MOVC    A, @A+DPTR
+   79:	  015A	60 06		        JZ      SEND_STRING_END ; ถ้าดึงข้อมูลมาเจอเลข 00H แปลว่าจบประโยค ให้หยุด
+   80:	  015C	12 01 63	        CALL    SEND_CHAR
+   81:	  015F	A3		        INC     DPTR
+   82:	  0160	80 F6		        SJMP    SEND_STRING
+   83:	  0162			SEND_STRING_END:
+   84:	  0162	22		        RET
+   85:
+   86:				; ==========================================
+   87:				; โปรแกรมย่อย: ส่งอักขระ 1 ตัว (Char)
+   88:				; ==========================================
+   89:	  0163			SEND_CHAR:
+   90:	  0163	C2 99		        CLR     TI              ; เคลียร์ธงรอส่ง
+   91:	  0165	F5 99		        MOV     SBUF, A         ; ยัดข้อมูลลงท่อส่ง
+   92:	  0167	30 99 FD	        JNB     TI, $           ; ยืนรอจนกว่าจะส่งเสร็จ (TI เด้งเป็น 1)
+   93:	  016A	C2 99		        CLR     TI              ; ส่งเสร็จแล้วเคลียร์ธงทิ้ง
+   94:	  016C	22		        RET
+   95:
+   96:				; ==========================================
+   97:				; โปรแกรมย่อย: หน่วงเวลา 500ms (0.5 วินาที)
+   98:				; ==========================================
+   99:	  016D			DELAY_500MS:
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 3
+
+
+
+ Line  I  Addr  Code            Source
+
+  100:	  016D	7D 05		        MOV     R5, #5
+  101:	  016F	7E C8		DLY1:   MOV     R6, #200
+  102:	  0171	7F FA		DLY2:   MOV     R7, #250
+  103:	  0173	DF FE		        DJNZ    R7, $
+  104:	  0175	DE FA		        DJNZ    R6, DLY2
+  105:	  0177	DD F6		        DJNZ    R5, DLY1
+  106:	  0179	22		        RET
+  107:
+  108:				; ==========================================
+  109:				; ฐานข้อมูลตัวหนังสือ
+  110:				; ==========================================
+  111:	  017A			STR_DATA:
+  112:	  017A	44 61 74 61	        DB      'Data Count = ', 00H
+	  017E	20 43 6F 75
+	  0182	6E 74 20 3D
+	  0186	20 00
+  113:	  0188			HEX_TABLE:
+  114:	  0188	30 31 32 33	        DB      '0123456789ABCDEF'
+	  018C	34 35 36 37
+	  0190	38 39 41 42
+	  0194	43 44 45 46
+  115:
+  116:				        END
+
+
+
+
+
+                     register banks used:  ---
+
+                     no errors
+
+
+
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 4
+
+
+
+
+
+	       L I S T   O F   S Y M B O L S
+	       =============================
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+??ASEM_51			  NUMBER    8051
+??VERSION			  NUMBER    0130
+AC				  BIT	      D6
+ACC				  DATA	      E0
+B				  DATA	      F0
+CY				  BIT	      D7
+DELAY_500MS			  CODE	    016D	  99
+DLY1				  CODE	    016F	 101
+DLY2				  CODE	    0171	 102
+DPH				  DATA	      83
+DPL				  DATA	      82
+EA				  BIT	      AF
+ES				  BIT	      AC
+ET0				  BIT	      A9
+ET1				  BIT	      AB
+EX0				  BIT	      A8
+EX1				  BIT	      AA
+EXTI0				  CODE	    0003
+EXTI1				  CODE	    0013
+F0				  BIT	      D5
+HEX_TABLE			  CODE	    0188	 113
+IE				  DATA	      A8
+IE0				  BIT	      89
+IE1				  BIT	      8B
+INT0				  BIT	      B2
+INT1				  BIT	      B3
+IP				  DATA	      B8
+IT0				  BIT	      88
+IT1				  BIT	      8A
+MAIN				  CODE	    0100	   5
+MAIN_LOOP			  CODE	    0118	  25
+NIBBLE_TO_ASCII			  CODE	    0149	  63
+OV				  BIT	      D2
+P				  BIT	      D0
+P0				  DATA	      80
+P1				  DATA	      90
+P2				  DATA	      A0
+P3				  DATA	      B0
+PCON				  DATA	      87
+PS				  BIT	      BC
+PSW				  DATA	      D0
+PT0				  BIT	      B9
+PT1				  BIT	      BB
+PX0				  BIT	      B8
+PX1				  BIT	      BA
+RB8				  BIT	      9A
+RD				  BIT	      B7
+REN				  BIT	      9C
+RESET				  CODE	    0000
+RI				  BIT	      98
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 5
+
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+RS0				  BIT	      D3
+RS1				  BIT	      D4
+RXD				  BIT	      B0
+SBUF				  DATA	      99
+SCON				  DATA	      98
+SEND_CHAR			  CODE	    0163	  89
+SEND_HEX_BYTE			  CODE	    0137	  52
+SEND_STRING			  CODE	    0158	  76
+SEND_STRING_END			  CODE	    0162	  83
+SINT				  CODE	    0023
+SM0				  BIT	      9F
+SM1				  BIT	      9E
+SM2				  BIT	      9D
+SP				  DATA	      81
+STR_DATA			  CODE	    017A	 111
+T0				  BIT	      B4
+T1				  BIT	      B5
+TB8				  BIT	      9B
+TCON				  DATA	      88
+TF0				  BIT	      8D
+TF1				  BIT	      8F
+TH0				  DATA	      8C
+TH1				  DATA	      8D
+TI				  BIT	      99
+TIMER0				  CODE	    000B
+TIMER1				  CODE	    001B
+TL0				  DATA	      8A
+TL1				  DATA	      8B
+TMOD				  DATA	      89
+TR0				  BIT	      8C
+TR1				  BIT	      8E
+TXD				  BIT	      B1
+WR				  BIT	      B6
